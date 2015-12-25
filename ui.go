@@ -560,27 +560,27 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"ui/favicon.ico": uiFaviconIco,
-	"ui/fonts/LCDBOLD/LCDBOLD-bg.png": uiFontsLcdboldLcdboldBgPng,
-	"ui/fonts/LCDBOLD/LCDBOLD-thumb.png": uiFontsLcdboldLcdboldThumbPng,
-	"ui/fonts/LCDBOLD/LCDBOLD.eot": uiFontsLcdboldLcdboldEot,
-	"ui/fonts/LCDBOLD/LCDBOLD.png": uiFontsLcdboldLcdboldPng,
-	"ui/fonts/LCDBOLD/LCDBOLD.ttf": uiFontsLcdboldLcdboldTtf,
-	"ui/fonts/LCDBOLD/LCDBOLD.woff": uiFontsLcdboldLcdboldWoff,
-	"ui/fonts/LCDBOLD/font.css": uiFontsLcdboldFontCss,
-	"ui/fonts/LCDBOLD/index.html": uiFontsLcdboldIndexHtml,
-	"ui/fonts/LCDBOLD/readme.txt": uiFontsLcdboldReadmeTxt,
-	"ui/index.html": uiIndexHtml,
-	"ui/javascript/d3.js": uiJavascriptD3Js,
-	"ui/javascript/nest-thermostat.js": uiJavascriptNestThermostatJs,
-	"ui/lib/jquery/jquery.min.js": uiLibJqueryJqueryMinJs,
-	"ui/lib/jquery/jquery.min.map": uiLibJqueryJqueryMinMap,
+	"ui/favicon.ico":                        uiFaviconIco,
+	"ui/fonts/LCDBOLD/LCDBOLD-bg.png":       uiFontsLcdboldLcdboldBgPng,
+	"ui/fonts/LCDBOLD/LCDBOLD-thumb.png":    uiFontsLcdboldLcdboldThumbPng,
+	"ui/fonts/LCDBOLD/LCDBOLD.eot":          uiFontsLcdboldLcdboldEot,
+	"ui/fonts/LCDBOLD/LCDBOLD.png":          uiFontsLcdboldLcdboldPng,
+	"ui/fonts/LCDBOLD/LCDBOLD.ttf":          uiFontsLcdboldLcdboldTtf,
+	"ui/fonts/LCDBOLD/LCDBOLD.woff":         uiFontsLcdboldLcdboldWoff,
+	"ui/fonts/LCDBOLD/font.css":             uiFontsLcdboldFontCss,
+	"ui/fonts/LCDBOLD/index.html":           uiFontsLcdboldIndexHtml,
+	"ui/fonts/LCDBOLD/readme.txt":           uiFontsLcdboldReadmeTxt,
+	"ui/index.html":                         uiIndexHtml,
+	"ui/javascript/d3.js":                   uiJavascriptD3Js,
+	"ui/javascript/nest-thermostat.js":      uiJavascriptNestThermostatJs,
+	"ui/lib/jquery/jquery.min.js":           uiLibJqueryJqueryMinJs,
+	"ui/lib/jquery/jquery.min.map":          uiLibJqueryJqueryMinMap,
 	"ui/lib/jquery-cookie/jquery.cookie.js": uiLibJqueryCookieJqueryCookieJs,
-	"ui/stylesheets/all.css": uiStylesheetsAllCss,
-	"ui/svg/house.svg": uiSvgHouseSvg,
-	"ui/svg/key.svg": uiSvgKeySvg,
-	"ui/svg/leaf.svg": uiSvgLeafSvg,
-	"ui/svg/user.svg": uiSvgUserSvg,
+	"ui/stylesheets/all.css":                uiStylesheetsAllCss,
+	"ui/svg/house.svg":                      uiSvgHouseSvg,
+	"ui/svg/key.svg":                        uiSvgKeySvg,
+	"ui/svg/leaf.svg":                       uiSvgLeafSvg,
+	"ui/svg/user.svg":                       uiSvgUserSvg,
 }
 
 // AssetDir returns the file names below a certain
@@ -622,30 +622,31 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"ui": &bintree{nil, map[string]*bintree{
 		"favicon.ico": &bintree{uiFaviconIco, map[string]*bintree{}},
 		"fonts": &bintree{nil, map[string]*bintree{
 			"LCDBOLD": &bintree{nil, map[string]*bintree{
-				"LCDBOLD-bg.png": &bintree{uiFontsLcdboldLcdboldBgPng, map[string]*bintree{}},
+				"LCDBOLD-bg.png":    &bintree{uiFontsLcdboldLcdboldBgPng, map[string]*bintree{}},
 				"LCDBOLD-thumb.png": &bintree{uiFontsLcdboldLcdboldThumbPng, map[string]*bintree{}},
-				"LCDBOLD.eot": &bintree{uiFontsLcdboldLcdboldEot, map[string]*bintree{}},
-				"LCDBOLD.png": &bintree{uiFontsLcdboldLcdboldPng, map[string]*bintree{}},
-				"LCDBOLD.ttf": &bintree{uiFontsLcdboldLcdboldTtf, map[string]*bintree{}},
-				"LCDBOLD.woff": &bintree{uiFontsLcdboldLcdboldWoff, map[string]*bintree{}},
-				"font.css": &bintree{uiFontsLcdboldFontCss, map[string]*bintree{}},
-				"index.html": &bintree{uiFontsLcdboldIndexHtml, map[string]*bintree{}},
-				"readme.txt": &bintree{uiFontsLcdboldReadmeTxt, map[string]*bintree{}},
+				"LCDBOLD.eot":       &bintree{uiFontsLcdboldLcdboldEot, map[string]*bintree{}},
+				"LCDBOLD.png":       &bintree{uiFontsLcdboldLcdboldPng, map[string]*bintree{}},
+				"LCDBOLD.ttf":       &bintree{uiFontsLcdboldLcdboldTtf, map[string]*bintree{}},
+				"LCDBOLD.woff":      &bintree{uiFontsLcdboldLcdboldWoff, map[string]*bintree{}},
+				"font.css":          &bintree{uiFontsLcdboldFontCss, map[string]*bintree{}},
+				"index.html":        &bintree{uiFontsLcdboldIndexHtml, map[string]*bintree{}},
+				"readme.txt":        &bintree{uiFontsLcdboldReadmeTxt, map[string]*bintree{}},
 			}},
 		}},
 		"index.html": &bintree{uiIndexHtml, map[string]*bintree{}},
 		"javascript": &bintree{nil, map[string]*bintree{
-			"d3.js": &bintree{uiJavascriptD3Js, map[string]*bintree{}},
+			"d3.js":              &bintree{uiJavascriptD3Js, map[string]*bintree{}},
 			"nest-thermostat.js": &bintree{uiJavascriptNestThermostatJs, map[string]*bintree{}},
 		}},
 		"lib": &bintree{nil, map[string]*bintree{
 			"jquery": &bintree{nil, map[string]*bintree{
-				"jquery.min.js": &bintree{uiLibJqueryJqueryMinJs, map[string]*bintree{}},
+				"jquery.min.js":  &bintree{uiLibJqueryJqueryMinJs, map[string]*bintree{}},
 				"jquery.min.map": &bintree{uiLibJqueryJqueryMinMap, map[string]*bintree{}},
 			}},
 			"jquery-cookie": &bintree{nil, map[string]*bintree{
@@ -657,9 +658,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		}},
 		"svg": &bintree{nil, map[string]*bintree{
 			"house.svg": &bintree{uiSvgHouseSvg, map[string]*bintree{}},
-			"key.svg": &bintree{uiSvgKeySvg, map[string]*bintree{}},
-			"leaf.svg": &bintree{uiSvgLeafSvg, map[string]*bintree{}},
-			"user.svg": &bintree{uiSvgUserSvg, map[string]*bintree{}},
+			"key.svg":   &bintree{uiSvgKeySvg, map[string]*bintree{}},
+			"leaf.svg":  &bintree{uiSvgLeafSvg, map[string]*bintree{}},
+			"user.svg":  &bintree{uiSvgUserSvg, map[string]*bintree{}},
 		}},
 	}},
 }}
@@ -710,4 +711,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-

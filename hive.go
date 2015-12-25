@@ -30,6 +30,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/user"
 	"path"
 	"regexp"
 	"strconv"
@@ -302,11 +303,6 @@ func update_user(user *User) (err error) {
 	return
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fp := path.Join("static", r.URL.Path[1:])
-	http.ServeFile(w, r, fp)
-}
-
 var DEVICE_REGEX = regexp.MustCompile(`/device/(?P<deviceId>.+?)/(?P<type>.+?)/+`)
 
 func deviceRequest(req *http.Request) (string, string, bool) {
@@ -383,20 +379,35 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func getCredentials(file string) (creds Credentials) {
-	raw, err := ioutil.ReadFile(file)
+func getCredentialsAndUser() (User, error) {
+	usr, err := user.Current()
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
+	credJson := path.Join(usr.HomeDir, ".hive", "creds.json")
+	_, err = os.Stat(credJson)
+	if err != nil {
+		fmt.Println("User credentials do not exist at:", credJson)
+		credJson = "./__data__/creds.json"
+		fmt.Println("Falling back to build location:", credJson)
+	}
+
+	raw, err := ioutil.ReadFile(credJson)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	var creds Credentials
 	json.Unmarshal(raw, &creds)
-	return
+
+	return init_user(creds.Email, creds.Password)
 }
 
 func main() {
-	creds := getCredentials("./__data__/creds.json")
-	user, _ := init_user(creds.Email, creds.Password)
+	user, _ := getCredentialsAndUser()
 	update_user(&user)
 	http.HandleFunc("/", Server(http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: "ui"}), &user))
 
