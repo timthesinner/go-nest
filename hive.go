@@ -175,7 +175,10 @@ func GET(uri string, user *User) (data map[string]interface{}, err error) {
 }
 
 func as_map(json map[string]interface{}, key string) map[string]interface{} {
-	return json[key].(map[string]interface{})
+	if val, ok := json[key]; ok {
+		return val.(map[string]interface{})
+	}
+	return map[string]interface{}{}
 }
 
 func first_child(json map[string]interface{}) interface{} {
@@ -261,6 +264,10 @@ func update_user(user *User) (err error) {
 	}
 
 	forcast, err := GET(user.Weather_url+"forcast="+structure["postal_code"].(string)+","+structure["country_code"].(string), user)
+  if err != nil {
+    return
+  }
+
 	devices := as_map(_user, "device")
 	current := as_map(first_child(forcast).(map[string]interface{}), "current")
 
