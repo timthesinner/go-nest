@@ -1,0 +1,9 @@
+[Unit]
+Description=Hive Thermostat and Humidity correction
+
+[Service]
+ExecStart=/usr/bin/hive /root
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

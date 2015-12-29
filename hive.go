@@ -41,6 +41,7 @@ const HOST = "https://home.nest.com"
 const LOGIN = HOST + "/user/login"
 const user_agent = "Nest/1.1.0.10 CFNetwork/548.0.4"
 const DESIRED_HUMIDITY = 40
+const ENV_REFRESH_SECONDS = 60
 
 type User struct {
 	Userid        string `json:"userid"`
@@ -181,11 +182,18 @@ func as_map(json map[string]interface{}, key string) map[string]interface{} {
 	return map[string]interface{}{}
 }
 
-func first_child(json map[string]interface{}) interface{} {
+func first_child(json map[string]interface{}) (interface{}, bool) {
 	for _, value := range json {
-		return value
+		return value, true
 	}
-	return nil
+	return nil, false
+}
+
+func first_child_as_map(json map[string]interface{}) map[string]interface{} {
+	if child, ok := first_child(json); ok {
+		return child.(map[string]interface{})
+	}
+	return map[string]interface{}{}
 }
 
 func find_in_array(arr []interface{}, key string, value interface{}) interface{} {
@@ -252,59 +260,63 @@ func init_user(e, p string) (user User, err error) {
 
 func update_user(user *User) (err error) {
 	_user, err := GET(user.Transport_url+"/v2/mobile/user."+user.Userid, user)
-	if err != nil {
+	if err != nil || _user == nil {
 		return
 	}
 
-	where := first_child(as_map(_user, "where")).(map[string]interface{})
-	structure := first_child(as_map(_user, "structure")).(map[string]interface{})
+	where := first_child_as_map(as_map(_user, "where"))
+	structure := first_child_as_map(as_map(_user, "structure"))
 
 	if where == nil || structure == nil {
 		return
 	}
 
 	forcast, err := GET(user.Weather_url+"forcast="+structure["postal_code"].(string)+","+structure["country_code"].(string), user)
-  if err != nil {
-    return
-  }
+	if err != nil || forcast == nil {
+		return
+	}
 
 	devices := as_map(_user, "device")
-	current := as_map(first_child(forcast).(map[string]interface{}), "current")
+	if _current, ok := first_child(forcast); !ok {
+		fmt.Println("Failed to lookup forcase for user")
+	} else {
+		current := as_map(_current.(map[string]interface{}), "current")
 
-	user.Home = Home{Inside: []Thermostat{},
-		Outside: Outside{Current_temp: current["temp_f"].(float64),
-			Current_humidity:   current["humidity"].(float64),
-			Current_condition:  current["condition"].(string),
-			Current_wind_speed: current["wind_mph"].(float64),
-			Current_wind_dir:   current["wind_dir"].(string)}}
+		user.Home = Home{Inside: []Thermostat{},
+			Outside: Outside{Current_temp: current["temp_f"].(float64),
+				Current_humidity:   current["humidity"].(float64),
+				Current_condition:  current["condition"].(string),
+				Current_wind_speed: current["wind_mph"].(float64),
+				Current_wind_dir:   current["wind_dir"].(string)}}
 
-	sharedData := as_map(_user, "shared")
-	for deviceId, _device := range devices {
-		device := _device.(map[string]interface{})
-		shared := as_map(sharedData, deviceId)
+		sharedData := as_map(_user, "shared")
+		for deviceId, _device := range devices {
+			device := _device.(map[string]interface{})
+			shared := as_map(sharedData, deviceId)
 
-		user.Home.Inside = append(user.Home.Inside, Thermostat{Device: deviceId,
-			Type:          "thermostat",
-			Has_leaf:      device["leaf"].(bool),
-			Location:      find_in_array(where["wheres"].([]interface{}), "where_id", device["where_id"]).(map[string]interface{})["name"].(string),
-			State:         device_state(device["humidifier_state"].(bool), shared["hvac_heater_state"].(bool), shared["hvac_ac_state"].(bool)),
-			Nest_metadata: Nest{Device: device, Shared: shared},
-			Humidity: Humidity{Has_humidifier: device["has_humidifier"].(bool),
-				Humidity_requested: device["humidifier_state"].(bool),
-				Current_humidity:   device["current_humidity"].(float64),
-				Target_humidity:    device["target_humidity"].(float64),
-				Control_enabled:    device["target_humidity_enabled"].(bool),
-				Metadata: map[string]interface{}{
-					"type": device["humidifier_type"],
-					"control_lockout_enabled":  device["humidity_control_lockout_enabled"],
-					"control_lockout_start":    device["humidity_control_lockout_start_time"],
-					"control_lockout_end_time": device["humidity_control_lockout_end_time"]}},
-			Hvac: HVAC{Ac_requested: shared["hvac_ac_state"].(bool),
-				Fan_requested:  device["fan_control_state"].(bool),
-				Heat_requested: shared["hvac_heater_state"].(bool),
-				Temp_scale:     device["temperature_scale"].(string),
-				Target_temp:    normalize_to_celcius(shared["target_temperature"].(float64), device["temperature_scale"].(string)),
-				Current_temp:   normalize_to_celcius(shared["current_temperature"].(float64), device["temperature_scale"].(string))}})
+			user.Home.Inside = append(user.Home.Inside, Thermostat{Device: deviceId,
+				Type:          "thermostat",
+				Has_leaf:      device["leaf"].(bool),
+				Location:      find_in_array(where["wheres"].([]interface{}), "where_id", device["where_id"]).(map[string]interface{})["name"].(string),
+				State:         device_state(device["humidifier_state"].(bool), shared["hvac_heater_state"].(bool), shared["hvac_ac_state"].(bool)),
+				Nest_metadata: Nest{Device: device, Shared: shared},
+				Humidity: Humidity{Has_humidifier: device["has_humidifier"].(bool),
+					Humidity_requested: device["humidifier_state"].(bool),
+					Current_humidity:   device["current_humidity"].(float64),
+					Target_humidity:    device["target_humidity"].(float64),
+					Control_enabled:    device["target_humidity_enabled"].(bool),
+					Metadata: map[string]interface{}{
+						"type": device["humidifier_type"],
+						"control_lockout_enabled":  device["humidity_control_lockout_enabled"],
+						"control_lockout_start":    device["humidity_control_lockout_start_time"],
+						"control_lockout_end_time": device["humidity_control_lockout_end_time"]}},
+				Hvac: HVAC{Ac_requested: shared["hvac_ac_state"].(bool),
+					Fan_requested:  device["fan_control_state"].(bool),
+					Heat_requested: shared["hvac_heater_state"].(bool),
+					Temp_scale:     device["temperature_scale"].(string),
+					Target_temp:    normalize_to_celcius(shared["target_temperature"].(float64), device["temperature_scale"].(string)),
+					Current_temp:   normalize_to_celcius(shared["current_temperature"].(float64), device["temperature_scale"].(string))}})
+		}
 	}
 
 	return
@@ -386,15 +398,25 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func getCredentialsAndUser() (User, error) {
+func getHomeDir() string {
 	usr, err := user.Current()
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+		if len(os.Args) == 2 {
+			fmt.Println(err, "falling back on command-line args:", os.Args[1])
+			return os.Args[1]
+		}
 
-	credJson := path.Join(usr.HomeDir, ".hive", "creds.json")
-	_, err = os.Stat(credJson)
+		dir := os.Getenv("HOME")
+		fmt.Println(err, "falling back on $HOME=", dir)
+		return dir
+	} else {
+		return usr.HomeDir
+	}
+}
+
+func getCredentialsAndUser() (User, error) {
+	credJson := path.Join(getHomeDir(), ".hive", "creds.json")
+	_, err := os.Stat(credJson)
 	if err != nil {
 		fmt.Println("User credentials do not exist at:", credJson)
 		credJson = "./__data__/creds.json"
@@ -419,8 +441,24 @@ func main() {
 	http.HandleFunc("/", Server(http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: "ui"}), &user))
 
 	go func() {
-		t := time.NewTicker(time.Second * 60)
+		/*
+		   * Aprilaire recommends the following indoor humidity maximums:
+		   *    Outdoor Temperature    Recommended
+		       (Degrees Fahrenheit)    Humidity (%)
+		              +40°                 45%
+		              +30°                 40%
+		              +20°                 35%
+		              +10°                 30%
+		               0°                  25%
+		              -10°                 20%
+		              -20°                 15%
+		   * Sourced from https://www.aprilaire.com/docs/default-source/default-document-library/relative-humidity-defined.pdf?sfvrsn=2
+		   *
+		   * This is a linear relationship so we can cheat and use interpolation
+		   *  to calculate the recommended humidity for any outside temp
+		*/
 		humidity_scale := interpolate(-20, 40, 15, 45)
+		t := time.NewTicker(time.Second * ENV_REFRESH_SECONDS)
 
 		func() {
 			for {
@@ -434,11 +472,13 @@ func main() {
 						temp_corrected_humidity_normalized = DESIRED_HUMIDITY
 					}
 
+					needUpdate := false
 					for _, device := range user.Home.Inside {
 						if device.Humidity.Has_humidifier {
 							if int(device.Humidity.Target_humidity) != temp_corrected_humidity_normalized {
 								user.setHumidity(device.Device, temp_corrected_humidity_normalized)
 								fmt.Println("Outside temp is", user.Home.Outside.Current_temp, "relative humidity should not exceed", strconv.Itoa(int(temp_corrected_humidity))+"%", "setting target humidity to", strconv.Itoa(temp_corrected_humidity_normalized)+"%")
+								needUpdate = true
 							}
 						}
 
@@ -446,10 +486,20 @@ func main() {
 							fmt.Println(device.Location, "has", strconv.Itoa(int(device.Humidity.Current_humidity))+"%", "humidity, the max for the current outside temp of", user.Home.Outside.Current_temp, "is", strconv.Itoa(int(temp_corrected_humidity))+"%")
 						}
 					}
+
+					if needUpdate {
+						go func() {
+							time.Sleep(time.Second * 5)
+							update_user(&user)
+						}()
+					}
 				}
 			}
 		}()
 	}()
+
+	//Pull latest ENV on startup
+	update_user(&user)
 
 	http.ListenAndServe(":8080", nil)
 }
