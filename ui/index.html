@@ -41,16 +41,18 @@
           
       function updateThermostats() {
         $.getJSON("/env", function(currentEnv) {
-          var $thermostats = $('#thermostats');
-          $.each(currentEnv.inside, function(i, device) {
-            var id = '_' + device.device;
-            if (thermostats[id]) {
-              thermostats[id].redraw(device);
-            } else {
-              $thermostats.append('<span id=' + id + '/>');
-              create(id, device);
-            }
-          });
+          if (currentEnv && currentEnv.inside) {
+            var $thermostats = $('#thermostats');
+            $.each(currentEnv.inside, function(i, device) {
+              var id = '_' + device.device;
+              if (thermostats[id]) {
+                thermostats[id].redraw(device);
+              } else {
+                $thermostats.append('<span id=' + id + '/>');
+                create(id, device);
+              }
+            });
+          }
         });
       }
             

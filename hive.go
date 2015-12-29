@@ -261,6 +261,7 @@ func init_user(e, p string) (user User, err error) {
 func update_user(user *User) (err error) {
 	_user, err := GET(user.Transport_url+"/v2/mobile/user."+user.Userid, user)
 	if err != nil || _user == nil {
+		fmt.Println("Failed to lookup user:", user.Userid)
 		return
 	}
 
@@ -268,6 +269,7 @@ func update_user(user *User) (err error) {
 	structure := first_child_as_map(as_map(_user, "structure"))
 
 	if where == nil || structure == nil {
+		fmt.Println("User meta-data did not contain a 'where' or 'structure' object")
 		return
 	}
 
@@ -436,7 +438,12 @@ func getCredentialsAndUser() (User, error) {
 }
 
 func main() {
-	user, _ := getCredentialsAndUser()
+	user, err := getCredentialsAndUser()
+	for ; err != nil; user, err = getCredentialsAndUser() {
+		fmt.Println("Failed to initialize user, trying again in 15 seconds.")
+		time.Sleep(time.Second * 15)
+	}
+
 	update_user(&user)
 	http.HandleFunc("/", Server(http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: "ui"}), &user))
 
