@@ -3,7 +3,7 @@ Description=Hive Thermostat and Humidity correction
 
 [Service]
 ExecStart=/usr/bin/hive /root
-Restart=on-abort
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
