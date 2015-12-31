@@ -1,4 +1,5 @@
 node_modules
 npm-debug.log
-*.exe
+hive
+hive.exe
 __data__

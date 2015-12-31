@@ -33,6 +33,7 @@ import (
 	"os/user"
 	"path"
 	"regexp"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -258,12 +259,34 @@ func init_user(e, p string) (user User, err error) {
 	return
 }
 
+func get_stack(err interface{}) string {
+	stack := make([]uintptr, 50)
+	length := runtime.Callers(6, stack[:]) //Skip 6 callers to handle panic and get to the line that is in error
+	stack = stack[:length]
+
+	buf := bytes.Buffer{}
+	buf.WriteString(fmt.Sprintf("%v\n", err))
+	for _, pc := range stack {
+		frame := runtime.FuncForPC(pc)
+		file, line := frame.FileLine(pc - 1)
+		buf.WriteString(fmt.Sprintf("  %s:%d (0x%x)\n", file, line, pc))
+	}
+
+	return string(buf.Bytes())
+}
+
 func update_user(user *User) (err error) {
 	_user, err := GET(user.Transport_url+"/v2/mobile/user."+user.Userid, user)
 	if err != nil || _user == nil {
 		fmt.Println("Failed to lookup user:", user.Userid)
 		return
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Handling panic in update_user", get_stack(r))
+		}
+	}()
 
 	where := first_child_as_map(as_map(_user, "where"))
 	structure := first_child_as_map(as_map(_user, "structure"))
